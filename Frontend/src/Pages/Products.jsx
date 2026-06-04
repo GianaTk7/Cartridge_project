@@ -8,6 +8,8 @@ const Products = () => {
   const [loading, setLoading] = useState(true);
   const [selectedBrand, setSelectedBrand] = useState('');
   const [error, setError] = useState('');
+      const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "";
+
 
   // Get brand from URL query parameter
   useEffect(() => {
@@ -24,7 +26,7 @@ const Products = () => {
   const fetchProducts = async (brand) => {
     setLoading(true);
     try {
-      const response = await fetch(`http://localhost:5000/api/products?brand=${brand}`);
+      const response = await fetch(`${BACKEND_URL}/api/products?brand=${brand}`);
       const data = await response.json();
       if (data.success) {
         setProducts(data.products);
