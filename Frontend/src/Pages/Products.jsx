@@ -8,10 +8,8 @@ const Products = () => {
   const [loading, setLoading] = useState(true);
   const [selectedBrand, setSelectedBrand] = useState('');
   const [error, setError] = useState('');
-      const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "";
+  const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "";
 
-
-  // Get brand from URL query parameter
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const brand = params.get('brand');

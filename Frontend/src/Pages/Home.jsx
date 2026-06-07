@@ -109,7 +109,7 @@ const Home = () => {
 
   return (
     <div className="app">
-      {/* Navbar */}
+  
       <nav className="navbar">
         <div className="nav-container">
           <div className="logo" style={{color: "#1b2937"}}>PAGE</div>
