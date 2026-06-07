@@ -87,18 +87,18 @@ const Home = () => {
 
   // Brand data (12 cartridge brands)
   const brands = [
-    { name: 'HP', description: 'High-quality HP cartridges', image: 'https://picsum.photos/id/0/300/200', discount: '-24%' },
-    { name: 'Canon', description: 'Original Canon cartridges', image: 'https://picsum.photos/id/1/300/200', discount: '-38%' },
-    { name: 'Epson', description: 'Epson genuine cartridges', image: 'https://picsum.photos/id/2/300/200', discount: '-61%' },
-    { name: 'Brother', description: 'Brother compatible cartridges', image: 'https://picsum.photos/id/3/300/200', discount: '-37%' },
-    { name: 'Samsung', description: 'Samsung printer cartridges', image: 'https://picsum.photos/id/4/300/200', discount: '-25%' },
-    { name: 'Lexmark', description: 'Lexmark original cartridges', image: 'https://picsum.photos/id/5/300/200', discount: '-17%' },
-    { name: 'Xerox', description: 'Xerox high-yield cartridges', image: 'https://picsum.photos/id/6/300/200', discount: '-20%' },
-    { name: 'Dell', description: 'Dell printer cartridges', image: 'https://picsum.photos/id/7/300/200', discount: '-26%' },
-    { name: 'Kyocera', description: 'Kyocera toner cartridges', image: 'https://picsum.photos/id/8/300/200', discount: '-24%' },
-    { name: 'Ricoh', description: 'Ricoh genuine cartridges', image: 'https://picsum.photos/id/9/300/200', discount: '-38%' },
-    { name: 'Konica Minolta', description: 'Konica Minolta cartridges', image: 'https://picsum.photos/id/10/300/200', discount: '-61%' },
-    { name: 'Sharp', description: 'Sharp printer cartridges', image: 'https://picsum.photos/id/11/300/200', discount: '-37%' },
+    { name: 'HP', description: 'High-quality HP cartridges', image: '/hp.jpg', discount: '-24%' },
+    { name: 'Canon', description: 'Original Canon cartridges', image: '/conon.jpg', discount: '-38%' },
+    { name: 'Epson', description: 'Epson genuine cartridges', image: '/epson.jpg', discount: '-61%' },
+    { name: 'Brother', description: 'Brother compatible cartridges', image: '/brother.jpg', discount: '-37%' },
+    { name: 'Samsung', description: 'Samsung printer cartridges', image: '/samsung.jpg', discount: '-25%' },
+    { name: 'Lexmark', description: 'Lexmark original cartridges', image: '/lexmark.jpg', discount: '-17%' },
+    { name: 'Xerox', description: 'Xerox high-yield cartridges', image: '/xerorx.jpg', discount: '-20%' },
+    { name: 'Dell', description: 'Dell printer cartridges', image: '/dell.jpg', discount: '-26%' },
+    { name: 'Kyocera', description: 'Kyocera toner cartridges', image: '/kycrote.jpg', discount: '-24%' },
+    { name: 'Ricoh', description: 'Ricoh genuine cartridges', image: '/ricoh.jpg', discount: '-38%' },
+    { name: 'Konica Minolta', description: 'Konica Minolta cartridges', image: '/konica.jpg', discount: '-61%' },
+    { name: 'Sharp', description: 'Sharp printer cartridges', image: '/sharp.jpg', discount: '-37%' },
   ];
 
   // Split brands into groups of 4 for slideshow
@@ -147,10 +147,10 @@ const Home = () => {
         <div className="slider-container">
          <div className="slides" style={{ transform: `translateX(-${currentSlide * 100}%)` }}>
   <div className="slide">
-    <div className="slide-image" style={{ backgroundImage: "url('/banner1.jpg')" }}></div>
+    <div className="slide-image" style={{ backgroundImage: "url('/colors.jpg')" }}></div>
   </div>
   <div className="slide">
-    <div className="slide-image" style={{ backgroundImage: "url('/Untitled-1.jpg')" }}></div>
+    <div className="slide-image" style={{ backgroundImage: "url('/jpg(5).jpeg')" }}></div>
   </div>
   <div className="slide">
     <div className="slide-image" style={{ backgroundImage: "url('/Untitled.jpg')" }}></div>
@@ -550,13 +550,12 @@ const Home = () => {
           width: 100%;
           height: 100%;
           overflow: hidden;
-        }
+          }
 
         .slides {
           display: flex;
           width: 100%;
           height: 100%;
-          transition: transform 0.5s ease;
         }
 
         .slide {
@@ -581,7 +580,6 @@ const Home = () => {
           left: 0;
           width: 100%;
           height: 100%;
-          background: rgba(0,0,0,0.4);
         }
 
         .arrow {
