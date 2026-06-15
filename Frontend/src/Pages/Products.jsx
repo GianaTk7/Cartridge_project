@@ -8,7 +8,7 @@ const Products = () => {
   const [loading, setLoading] = useState(true);
   const [selectedBrand, setSelectedBrand] = useState('');
   const [error, setError] = useState('');
-  const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "";
+  const BACKEND_URL = "http://localhost:8000";
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -38,24 +38,33 @@ const Products = () => {
       setLoading(false);
     }
   };
-
-  const fetchAllProducts = async () => {
-    setLoading(true);
-    try {
-      const response = await fetch('http://localhost:5000/api/products');
-      const data = await response.json();
-      if (data.success) {
-        setProducts(data.products);
-      } else {
-        setError(data.message);
-      }
-    } catch (err) {
-      setError('Failed to fetch products');
-      console.error(err);
-    } finally {
-      setLoading(false);
+const fetchAllProducts = async () => {
+  setLoading(true);
+  setError('');
+  try {
+    // Use the same BACKEND_URL pattern consistently
+    const response = await fetch(`${BACKEND_URL}/api/products`);
+    
+    // Check if response is ok
+    if (!response.ok) {
+      throw new Error(`Server error: ${response.status}`);
     }
-  };
+    
+    // Parse JSON
+    const data = await response.json();
+    
+    if (data.success) {
+      setProducts(data.products);
+    } else {
+      setError(data.message || 'Failed to fetch products');
+    }
+  } catch (err) {
+    console.error('Fetch error:', err);
+    setError('Cannot connect to backend. Make sure server is running on port 8000');
+  } finally {
+    setLoading(false);
+  }
+};
 
   const handleBrandFilter = (brand) => {
     setSelectedBrand(brand);
@@ -116,7 +125,7 @@ const Products = () => {
                 <div className="product-discount">-{product.discount}%</div>
               )}
               <div className="product-image">
-                <img src={product.image || 'https://via.placeholder.com/300'} alt={product.name} />
+                <img src={product.image || 'https://via.placeholder.com/500'} alt={product.name} />
               </div>
               <div className="product-info">
                 <h3 className="product-brand">{product.brand}</h3>
@@ -140,7 +149,7 @@ const Products = () => {
         </div>
       )}
 
-      <style jsx>{`
+      <style>{`
         .products-page {
           min-height: 100vh;
           background: #f5f5f5;

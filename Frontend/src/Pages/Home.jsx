@@ -95,7 +95,7 @@ const Home = () => {
     { name: 'Lexmark', description: 'Lexmark original cartridges', image: '/lexmark.jpg', discount: '-17%' },
     { name: 'Xerox', description: 'Xerox high-yield cartridges', image: '/xerorx.jpg', discount: '-20%' },
     { name: 'Dell', description: 'Dell printer cartridges', image: '/dell.jpg', discount: '-26%' },
-    { name: 'Kyocera', description: 'Kyocera toner cartridges', image: '/kycrote.jpg', discount: '-24%' },
+    { name: 'Kyocera', description: 'Kyocer cartridges', image: '/kycrote.jpg', discount: '-24%' },
     { name: 'Ricoh', description: 'Ricoh genuine cartridges', image: '/ricoh.jpg', discount: '-38%' },
     { name: 'Konica Minolta', description: 'Konica Minolta cartridges', image: '/konica.jpg', discount: '-61%' },
     { name: 'Sharp', description: 'Sharp printer cartridges', image: '/sharp.jpg', discount: '-37%' },
@@ -112,7 +112,9 @@ const Home = () => {
   
       <nav className="navbar">
         <div className="nav-container">
-          <div className="logo" style={{color: "#1b2937"}}>PAGE</div>
+          <div className="logo" >
+            <img src="/logo.png" alt="Covenant Print Solution Logo" style={{ height: '40px', width: 'auto' }} />
+          </div>
           <button className="hamburger" onClick={toggleSidebar}>
             <span></span>
             <span></span>
@@ -284,7 +286,7 @@ const Home = () => {
               <div className="contact-detail">
                 <div>
                   <strong>Address:</strong>
-                  <p>115 Blairgowrie Dr, Blairgowrie, Randburg, 2194</p>
+                  <p>52 trossachs the hill</p>
                   <p>Gauteng, South Africa</p>
                 </div>
               </div>
@@ -421,11 +423,14 @@ const Home = () => {
         }
 
         .logo {
-          font-size: 1.5rem;
-          font-weight: bold;
           letter-spacing: 1px;
-          color: #fff;
+          border: 2px solid #83263d;
         }
+          .logo img {
+            height: 120px;
+            width: auto;
+            fontsize: 6rem;
+          }
 
         .nav-links {
           display: flex;
