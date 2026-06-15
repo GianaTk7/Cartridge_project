@@ -37,16 +37,12 @@ const Home = () => {
   const handleNavigation = (item) => {
     const itemLower = item.toLowerCase();
     
-    // Check if we're on the home page (path is '/' or '/home')
     const isOnHomePage = window.location.pathname === '/' || window.location.pathname === '/home';
     
     if (itemLower === 'about us') {
-      // Navigate to about page
       navigate('/about');
     } else if (itemLower === 'home') {
-      // Navigate to home page
       navigate('/');
-      // Scroll to home section after navigation
       setTimeout(() => {
         const element = document.getElementById('home');
         if (element) {
@@ -54,16 +50,13 @@ const Home = () => {
         }
       }, 100);
     } else {
-      // For other sections, check if we're on home page
       if (isOnHomePage) {
-        // Already on home page, just scroll
         setActiveSection(itemLower);
         const element = document.getElementById(itemLower);
         if (element) {
           element.scrollIntoView({ behavior: 'smooth' });
         }
       } else {
-        // Navigate to home page first, then scroll
         navigate('/');
         setTimeout(() => {
           setActiveSection(itemLower);
@@ -113,7 +106,7 @@ const Home = () => {
       <nav className="navbar">
         <div className="nav-container">
           <div className="logo" >
-            <img src="/logo.png" alt="Covenant Print Solution Logo" style={{ height: '40px', width: 'auto' }} />
+            <img src="/newlogo.png" alt="Covenant Solution Print" style={{ height: '80px', width: 'auto' }} />
           </div>
           <button className="hamburger" onClick={toggleSidebar}>
             <span></span>
@@ -176,9 +169,9 @@ const Home = () => {
         </div>
 
         <div className="hero-content">
-          <h1 className="hero-title">Covenant print solution</h1>
+          <h1 className="hero-title">Covenant Solution Print</h1>
           <p className="hero-text">
-            Covenant Print Solution delivers high-quality, affordable printing services for businesses and individuals.
+            Covenant Solution Print delivers high-quality, affordable printing services for businesses and individuals.
           </p>
           <button className="cta-button">View Services</button>
         </div>
@@ -186,9 +179,9 @@ const Home = () => {
 
 <section className="welcome-section">
   <div className="welcome-content">
-    <h2 className="welcome-title">Welcome to Covenant Print Solution</h2>
+    <h2 className="welcome-title">Welcome to Covenant Solution Print</h2>
     <p className="welcome-text">
-      Covenant Print Solution is your trusted partner for high-quality printer cartridges and printing solutions in South Africa. 
+      Covenant Solution Print is your trusted partner for high-quality printer cartridges and printing solutions in South Africa. 
       We specialize in providing original and compatible cartridges for all major printer brands including HP, Canon, Epson, Brother, 
       and Lexmark. Our commitment to quality and affordability ensures that you get the best value for your money.
     </p>
@@ -278,8 +271,9 @@ const Home = () => {
               <div className="contact-detail">
                 <div>
                   <strong>Phone:</strong>
-                  <p>Tel: 078 780 3035</p>
-                  <p>WhatsApp: 078 780 3035</p>
+                  <p>Tel: 0687830431</p>
+                  <p>WhatsApp: 0687830431</p>
+                  <p>Message Covenant solution print: <a href="https://wa.me/message/ALUSLA4P3GGAJ1" target="_blank" rel="noopener noreferrer" style={{color: "#fff", fontSize: "25px"}}>Click here</a></p>
                 </div>
               </div>
               
@@ -294,7 +288,7 @@ const Home = () => {
               <div className="contact-detail">
                 <div>
                   <strong>Email:</strong>
-                  <p>Covenantprintsolution@gmail.com</p>
+                  <p>Covenantsolutionprint@gmail.com</p>
                   <p>Response within 24 hours</p>
                 </div>
               </div>
@@ -413,24 +407,27 @@ const Home = () => {
           z-index: 1000;
         }
 
-        .nav-container {
-          max-width: 1200px;
-          margin: 0 auto;
-          padding: 1rem 2rem;
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-        }
+       .nav-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 1rem 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
 
-        .logo {
-          letter-spacing: 1px;
-          border: 2px solid #83263d;
-        }
-          .logo img {
-            height: 120px;
-            width: auto;
-            fontsize: 6rem;
-          }
+.logo {
+  letter-spacing: 1px;
+  // border: 2px solid #26835b;
+  margin-right: auto;
+}
+
+.logo img {
+  height: 120px;
+  width: auto;
+  background: #1b2937;
+  display: block;
+}
 
         .nav-links {
           display: flex;

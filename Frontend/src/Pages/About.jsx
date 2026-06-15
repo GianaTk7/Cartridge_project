@@ -25,7 +25,7 @@ const About = () => {
         <div className="about-section">
           <h2>Who We Are</h2>
           <p>
-            Covenant Print Solution is a leading supplier of high-quality printer cartridges 
+            Covenant Solution Print is a leading supplier of high-quality printer cartridges 
             and printing solutions in South Africa. We are dedicated to providing affordable, 
             reliable printing products for homes and businesses.
           </p>
@@ -71,9 +71,9 @@ const About = () => {
         {/* Contact Info */}
         <div className="contact-box">
           <h3>Get in Touch</h3>
-          <p>📞 078 780 3035</p>
-          <p>✉️ Covenantprintsolution@gmail.com</p>
-          <p>📍 115 Blairgowrie Dr, Blairgowrie, Randburg, 2194</p>
+          <p> 0687830431</p>
+          <p> Covenantsolutionprint@gmail.com</p>
+          <p> 115 Blairgowrie Dr, Blairgowrie, Randburg, 2194</p>
         </div>
       </div>
 
