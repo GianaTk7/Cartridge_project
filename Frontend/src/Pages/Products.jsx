@@ -8,7 +8,7 @@ const Products = () => {
   const [loading, setLoading] = useState(true);
   const [selectedBrand, setSelectedBrand] = useState('');
   const [error, setError] = useState('');
-  const BACKEND_URL = "http://localhost:8000";
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -42,15 +42,12 @@ const fetchAllProducts = async () => {
   setLoading(true);
   setError('');
   try {
-    // Use the same BACKEND_URL pattern consistently
     const response = await fetch(`${BACKEND_URL}/api/products`);
     
-    // Check if response is ok
     if (!response.ok) {
       throw new Error(`Server error: ${response.status}`);
     }
     
-    // Parse JSON
     const data = await response.json();
     
     if (data.success) {
