@@ -106,7 +106,7 @@ const Home = () => {
       <nav className="navbar">
         <div className="nav-container">
           <div className="logo" >
-            <img src="/newlogo.png" alt="Covenant Solution Print" style={{ height: '80px', width: 'auto' }} />
+            <img src="/logoimg.png" alt="Covenant Solution Print" style={{ height: '80px', width: 'auto' }} />
           </div>
           <button className="hamburger" onClick={toggleSidebar}>
             <span></span>

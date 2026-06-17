@@ -4,12 +4,13 @@ import { useLocation, useNavigate } from 'react-router-dom';
 const Products = () => {
   const location = useLocation();
   const navigate = useNavigate();
+    const BACKEND_URL = "http://127.0.0.1:8000";  // 👈 PUT IT HERE
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedBrand, setSelectedBrand] = useState('');
   const [error, setError] = useState('');
-  const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "";
-
+  // const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "";
+console.log("BACKEND_URL in Products.jsx:====================", BACKEND_URL);
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const brand = params.get('brand');
@@ -24,7 +25,9 @@ const Products = () => {
   const fetchProducts = async (brand) => {
     setLoading(true);
     try {
-      const response = await fetch(`${BACKEND_URL}/api/products?brand=${brand}`);
+      const response = await fetch(
+  `${BACKEND_URL}/api/products?brand=${brand}`
+);
       const data = await response.json();
       if (data.success) {
         setProducts(data.products);
@@ -42,8 +45,7 @@ const fetchAllProducts = async () => {
   setLoading(true);
   setError('');
   try {
-    const response = await fetch(`${BACKEND_URL}/api/products`);
-    
+const response = await fetch(`${BACKEND_URL}/api/products`);    
     if (!response.ok) {
       throw new Error(`Server error: ${response.status}`);
     }
