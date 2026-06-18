@@ -4,13 +4,32 @@ import { useLocation, useNavigate } from 'react-router-dom';
 const Products = () => {
   const location = useLocation();
   const navigate = useNavigate();
-    const BACKEND_URL = "http://127.0.0.1:8000";  // 👈 PUT IT HERE
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedBrand, setSelectedBrand] = useState('');
   const [error, setError] = useState('');
-  // const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "";
-console.log("BACKEND_URL in Products.jsx:====================", BACKEND_URL);
+  
+  const [showLoginModal, setShowLoginModal] = useState(false);
+  const [showImportModal, setShowImportModal] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [loginCredentials, setLoginCredentials] = useState({ username: '', password: '' });
+  const [loginError, setLoginError] = useState('');
+  const [importForm, setImportForm] = useState({
+    name: '',
+    brand: '',
+    description: '',
+    price: '',
+    originalPrice: '',
+    discount: '',
+    compatiblePrinters: '',
+    stock: '',
+    category: '',
+    image: null
+  });
+  const [importLoading, setImportLoading] = useState(false);
+
+  const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const brand = params.get('brand');
@@ -25,9 +44,7 @@ console.log("BACKEND_URL in Products.jsx:====================", BACKEND_URL);
   const fetchProducts = async (brand) => {
     setLoading(true);
     try {
-      const response = await fetch(
-  `${BACKEND_URL}/api/products?brand=${brand}`
-);
+      const response = await fetch(`${BACKEND_URL}/api/products?brand=${brand}`);
       const data = await response.json();
       if (data.success) {
         setProducts(data.products);
@@ -41,44 +58,343 @@ console.log("BACKEND_URL in Products.jsx:====================", BACKEND_URL);
       setLoading(false);
     }
   };
-const fetchAllProducts = async () => {
-  setLoading(true);
-  setError('');
-  try {
-const response = await fetch(`${BACKEND_URL}/api/products`);    
-    if (!response.ok) {
-      throw new Error(`Server error: ${response.status}`);
+
+  const fetchAllProducts = async () => {
+    setLoading(true);
+    setError('');
+    try {
+      const response = await fetch(`${BACKEND_URL}/api/products`);
+      if (!response.ok) {
+        throw new Error(`Server error: ${response.status}`);
+      }
+      const data = await response.json();
+      if (data.success) {
+        setProducts(data.products);
+      } else {
+        setError(data.message || 'Failed to fetch products');
+      }
+    } catch (err) {
+      console.error('Fetch error:', err);
+      setError('Cannot connect to backend. Make sure server is running on port 8000');
+    } finally {
+      setLoading(false);
     }
-    
-    const data = await response.json();
-    
-    if (data.success) {
-      setProducts(data.products);
-    } else {
-      setError(data.message || 'Failed to fetch products');
-    }
-  } catch (err) {
-    console.error('Fetch error:', err);
-    setError('Cannot connect to backend. Make sure server is running on port 8000');
-  } finally {
-    setLoading(false);
-  }
-};
+  };
 
   const handleBrandFilter = (brand) => {
     setSelectedBrand(brand);
     navigate(`/products?brand=${brand}`);
   };
 
+  const handleImportClick = () => {
+    if (isAuthenticated) {
+      setShowImportModal(true);
+    } else {
+      setShowLoginModal(true);
+    }
+  };
+
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    setLoginError('');
+    setImportLoading(true);
+
+    try {
+
+      if (loginCredentials.username === 'Rose' && loginCredentials.password === 'rose0308') {
+        setIsAuthenticated(true);
+        setShowLoginModal(false);
+        setLoginCredentials({ username: '', password: '' });
+        setShowImportModal(true);
+      } else {
+        setLoginError('Invalid username or password');
+      }
+    } catch (err) {
+      setLoginError('Login failed. Please try again.');
+    } finally {
+      setImportLoading(false);
+    }
+  };
+
+  // Handle form input changes
+  const handleImportFormChange = (e) => {
+    const { name, value } = e.target;
+    setImportForm(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  // Handle file selection
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    setImportForm(prev => ({
+      ...prev,
+      image: file
+    }));
+  };
+
+  // Handle form submission
+  const handleImportSubmit = async (e) => {
+    e.preventDefault();
+    setImportLoading(true);
+    setError('');
+
+    try {
+      const formData = new FormData();
+      formData.append('name', importForm.name);
+      formData.append('brand', importForm.brand);
+      formData.append('description', importForm.description);
+      formData.append('price', importForm.price);
+      formData.append('originalPrice', importForm.originalPrice);
+      formData.append('discount', importForm.discount);
+      formData.append('compatiblePrinters', importForm.compatiblePrinters);
+      formData.append('stock', importForm.stock);
+      formData.append('category', importForm.category);
+      if (importForm.image) {
+        formData.append('image', importForm.image);
+      }
+
+      const response = await fetch(`${BACKEND_URL}/api/products/import`, {
+        method: 'POST',
+        body: formData
+      });
+
+      const data = await response.json();
+      
+      if (data.success) {
+        setShowImportModal(false);
+        setImportForm({
+          name: '',
+          brand: '',
+          description: '',
+          price: '',
+          originalPrice: '',
+          discount: '',
+          compatiblePrinters: '',
+          stock: '',
+          category: '',
+          image: null
+        });
+        // Refresh products
+        if (selectedBrand) {
+          fetchProducts(selectedBrand);
+        } else {
+          fetchAllProducts();
+        }
+        alert('Product imported successfully!');
+      } else {
+        setError(data.message || 'Failed to import product');
+      }
+    } catch (err) {
+      console.error('Import error:', err);
+      setError('Failed to import product. Please try again.');
+    } finally {
+      setImportLoading(false);
+    }
+  };
+
   const brands = ['hp', 'canon', 'epson', 'brother', 'samsung', 'lexmark', 'xerox', 'dell', 'kyocera', 'ricoh', 'konica minolta', 'sharp'];
+
+  // Login Modal
+  const LoginModal = () => (
+    <div className="modal-overlay" onClick={() => setShowLoginModal(false)}>
+      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+        <div className="modal-header">
+          <h2>Admin Login</h2>
+          <button className="modal-close" onClick={() => setShowLoginModal(false)}>×</button>
+        </div>
+        <form onSubmit={handleLogin}>
+          <div className="form-group">
+            <label>Username</label>
+            <input
+              type="text"
+              value={loginCredentials.username}
+              onChange={(e) => setLoginCredentials({...loginCredentials, username: e.target.value})}
+              placeholder="Enter username"
+              required
+            />
+          </div>
+          <div className="form-group">
+            <label>Password</label>
+            <input
+              type="password"
+              value={loginCredentials.password}
+              onChange={(e) => setLoginCredentials({...loginCredentials, password: e.target.value})}
+              placeholder="Enter password"
+              required
+            />
+          </div>
+          {loginError && <div className="error-message">{loginError}</div>}
+          <button type="submit" className="submit-btn" disabled={importLoading}>
+            {importLoading ? 'Logging in...' : 'Login'}
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+
+  // Import Modal
+  const ImportModal = () => (
+    <div className="modal-overlay" onClick={() => setShowImportModal(false)}>
+      <div className="modal-content import-modal" onClick={(e) => e.stopPropagation()}>
+        <div className="modal-header">
+          <h2>Import New Product</h2>
+          <button className="modal-close" onClick={() => setShowImportModal(false)}>×</button>
+        </div>
+        <form onSubmit={handleImportSubmit}>
+          <div className="form-row">
+            <div className="form-group">
+              <label>Product Name *</label>
+              <input
+                type="text"
+                name="name"
+                value={importForm.name}
+                onChange={handleImportFormChange}
+                placeholder="e.g., Canon PG-275 High-Yield Black"
+                required
+              />
+            </div>
+            <div className="form-group">
+              <label>Brand *</label>
+              <select
+                name="brand"
+                value={importForm.brand}
+                onChange={handleImportFormChange}
+                required
+              >
+                <option value="">Select Brand</option>
+                {brands.map(brand => (
+                  <option key={brand} value={brand}>{brand.toUpperCase()}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <div className="form-group">
+            <label>Description *</label>
+            <textarea
+              name="description"
+              value={importForm.description}
+              onChange={handleImportFormChange}
+              placeholder="Product description"
+              rows="3"
+              required
+            />
+          </div>
+
+          <div className="form-row">
+            <div className="form-group">
+              <label>Price (R) *</label>
+              <input
+                type="number"
+                name="price"
+                value={importForm.price}
+                onChange={handleImportFormChange}
+                placeholder="1400"
+                required
+              />
+            </div>
+            <div className="form-group">
+              <label>Original Price (R) *</label>
+              <input
+                type="number"
+                name="originalPrice"
+                value={importForm.originalPrice}
+                onChange={handleImportFormChange}
+                placeholder="3200"
+                required
+              />
+            </div>
+            <div className="form-group">
+              <label>Discount (%)</label>
+              <input
+                type="number"
+                name="discount"
+                value={importForm.discount}
+                onChange={handleImportFormChange}
+                placeholder="56"
+              />
+            </div>
+          </div>
+
+          <div className="form-row">
+            <div className="form-group">
+              <label>Stock *</label>
+              <input
+                type="number"
+                name="stock"
+                value={importForm.stock}
+                onChange={handleImportFormChange}
+                placeholder="25"
+                required
+              />
+            </div>
+            <div className="form-group">
+              <label>Category *</label>
+              <select
+                name="category"
+                value={importForm.category}
+                onChange={handleImportFormChange}
+                required
+              >
+                <option value="">Select Category</option>
+                <option value="Ink Cartridge">Ink Cartridge</option>
+                <option value="Toner Cartridge">Toner Cartridge</option>
+                <option value="Printer">Printer</option>
+                <option value="Accessory">Accessory</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="form-group">
+            <label>Compatible Printers</label>
+            <input
+              type="text"
+              name="compatiblePrinters"
+              value={importForm.compatiblePrinters}
+              onChange={handleImportFormChange}
+              placeholder="Canon Pixma TS3120, TS5120, TS6120"
+            />
+          </div>
+
+          <div className="form-group">
+            <label>Product Image *</label>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleFileChange}
+              required
+            />
+            {importForm.image && (
+              <div className="file-preview">
+                <p>Selected: {importForm.image.name}</p>
+              </div>
+            )}
+          </div>
+
+          {error && <div className="error-message">{error}</div>}
+          
+          <button type="submit" className="submit-btn" disabled={importLoading}>
+            {importLoading ? 'Importing...' : 'Import Product'}
+          </button>
+        </form>
+      </div>
+    </div>
+  );
 
   return (
     <div className="products-page">
       {/* Header */}
       <div className="products-header">
-        <button className="back-btn" onClick={() => navigate('/')}>
-          ← Back to Home
-        </button>
+        <div className="header-actions">
+          <button className="back-btn" onClick={() => navigate('/')}>
+            ← Back to Home
+          </button>
+          <button className="import-btn" onClick={handleImportClick}>
+            📥 Import Product
+          </button>
+        </div>
         <h1>Our Products</h1>
         {selectedBrand && <h2>Showing: {selectedBrand.toUpperCase()} Products</h2>}
       </div>
@@ -114,17 +430,24 @@ const response = await fetch(`${BACKEND_URL}/api/products`);
         </div>
       ) : products.length === 0 ? (
         <div className="no-products">
-          <p>No products found for {selectedBrand.toUpperCase()}</p>
+          <p>No products found {selectedBrand ? `for ${selectedBrand.toUpperCase()}` : ''}</p>
         </div>
       ) : (
         <div className="products-grid">
           {products.map((product) => (
             <div key={product._id} className="product-card">
-              {product.discount && (
+              {product.discount && product.discount > 0 && (
                 <div className="product-discount">-{product.discount}%</div>
               )}
               <div className="product-image">
-                <img src={product.image || 'https://via.placeholder.com/500'} alt={product.name} />
+                <img
+                  src={
+                    product.image
+                      ? `${BACKEND_URL}${product.image}`
+                      : 'https://via.placeholder.com/500'
+                  }
+                  alt={product.name}
+                />
               </div>
               <div className="product-info">
                 <h3 className="product-brand">{product.brand}</h3>
@@ -148,6 +471,10 @@ const response = await fetch(`${BACKEND_URL}/api/products`);
         </div>
       )}
 
+      {/* Modals */}
+      {showLoginModal && <LoginModal />}
+      {showImportModal && <ImportModal />}
+
       <style>{`
         .products-page {
           min-height: 100vh;
@@ -161,11 +488,15 @@ const response = await fetch(`${BACKEND_URL}/api/products`);
           position: relative;
         }
 
+        .header-actions {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 1rem;
+          padding: 0 1rem;
+        }
+
         .back-btn {
-          position: absolute;
-          left: 0;
-          top: 50%;
-          transform: translateY(-50%);
           background: #007bff;
           color: white;
           border: none;
@@ -173,10 +504,27 @@ const response = await fetch(`${BACKEND_URL}/api/products`);
           border-radius: 5px;
           cursor: pointer;
           font-size: 0.9rem;
+          transition: background 0.3s;
         }
 
         .back-btn:hover {
           background: #0056b3;
+        }
+
+        .import-btn {
+          background: #28a745;
+          color: white;
+          border: none;
+          padding: 0.5rem 1.5rem;
+          border-radius: 5px;
+          cursor: pointer;
+          font-size: 1rem;
+          font-weight: bold;
+          transition: background 0.3s;
+        }
+
+        .import-btn:hover {
+          background: #218838;
         }
 
         .products-header h1 {
@@ -342,6 +690,136 @@ const response = await fetch(`${BACKEND_URL}/api/products`);
           background: #0056b3;
         }
 
+        /* Modal Styles */
+        .modal-overlay {
+          position: fixed;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background: rgba(0, 0, 0, 0.7);
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          z-index: 1000;
+          padding: 1rem;
+        }
+
+        .modal-content {
+          background: white;
+          border-radius: 12px;
+          max-width: 800px;
+          width: 100%;
+          max-height: 90vh;
+          overflow-y: auto;
+          padding: 2rem;
+          box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        }
+
+        .import-modal {
+          max-width: 900px;
+        }
+
+        .modal-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 1.5rem;
+          padding-bottom: 1rem;
+          border-bottom: 2px solid #f0f0f0;
+        }
+
+        .modal-header h2 {
+          margin: 0;
+          color: #333;
+        }
+
+        .modal-close {
+          background: none;
+          border: none;
+          font-size: 2rem;
+          cursor: pointer;
+          color: #999;
+          transition: color 0.3s;
+        }
+
+        .modal-close:hover {
+          color: #333;
+        }
+
+        .form-row {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 1rem;
+        }
+
+        .form-group {
+          margin-bottom: 1rem;
+        }
+
+        .form-group label {
+          display: block;
+          margin-bottom: 0.5rem;
+          font-weight: 600;
+          color: #333;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+          width: 100%;
+          padding: 0.75rem;
+          border: 1px solid #ddd;
+          border-radius: 5px;
+          font-size: 1rem;
+          transition: border-color 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+          outline: none;
+          border-color: #007bff;
+        }
+
+        .file-preview {
+          margin-top: 0.5rem;
+          padding: 0.5rem;
+          background: #f8f9fa;
+          border-radius: 5px;
+        }
+
+        .submit-btn {
+          width: 100%;
+          padding: 0.75rem;
+          background: #28a745;
+          color: white;
+          border: none;
+          border-radius: 5px;
+          font-size: 1.1rem;
+          font-weight: bold;
+          cursor: pointer;
+          transition: background 0.3s;
+          margin-top: 1rem;
+        }
+
+        .submit-btn:hover:not(:disabled) {
+          background: #218838;
+        }
+
+        .submit-btn:disabled {
+          opacity: 0.6;
+          cursor: not-allowed;
+        }
+
+        .error-message {
+          color: #dc3545;
+          padding: 0.5rem;
+          margin-bottom: 1rem;
+          background: #f8d7da;
+          border-radius: 5px;
+        }
+
         .loading-spinner {
           display: flex;
           flex-direction: column;
@@ -364,22 +842,22 @@ const response = await fetch(`${BACKEND_URL}/api/products`);
           100% { transform: rotate(360deg); }
         }
 
-        .error-message, .no-products {
-          text-align: center;
-          padding: 2rem;
-          color: #ff4444;
-          font-size: 1.2rem;
-        }
-
         @media (max-width: 768px) {
           .products-page {
             padding: 1rem;
           }
 
+          .header-actions {
+            flex-direction: column;
+            gap: 0.5rem;
+          }
+
           .back-btn {
-            position: static;
-            margin-bottom: 1rem;
-            transform: none;
+            width: 100%;
+          }
+
+          .import-btn {
+            width: 100%;
           }
 
           .products-header h1 {
@@ -398,6 +876,14 @@ const response = await fetch(`${BACKEND_URL}/api/products`);
           .products-grid {
             grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
             gap: 1rem;
+          }
+
+          .form-row {
+            grid-template-columns: 1fr;
+          }
+
+          .modal-content {
+            padding: 1rem;
           }
         }
       `}</style>
