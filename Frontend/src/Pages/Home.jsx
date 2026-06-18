@@ -80,8 +80,8 @@ const Home = () => {
 
   // Brand data (12 cartridge brands)
   const brands = [
-    { name: 'HP', description: 'High-quality HP cartridges', image: '/hp.jpg', discount: '-24%' },
-    { name: 'Canon', description: 'Original Canon cartridges', image: '/conon.jpg', discount: '-38%' },
+    { name: 'HP', description: 'High-quality HP cartridges', image: '/hpset.jpg', discount: '-24%' },
+    { name: 'Canon', description: 'Original Canon cartridges', image: '/canon.jpg', discount: '-38%' },
     { name: 'Epson', description: 'Epson genuine cartridges', image: '/epson.jpg', discount: '-61%' },
     { name: 'Brother', description: 'Brother compatible cartridges', image: '/brother.jpg', discount: '-37%' },
     { name: 'Samsung', description: 'Samsung printer cartridges', image: '/samsung.jpg', discount: '-25%' },
