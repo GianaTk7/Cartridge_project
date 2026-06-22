@@ -9,11 +9,8 @@ const Products = () => {
   const [selectedBrand, setSelectedBrand] = useState('');
   const [error, setError] = useState('');
   
-  const [showLoginModal, setShowLoginModal] = useState(false);
   const [showImportModal, setShowImportModal] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [loginCredentials, setLoginCredentials] = useState({ username: '', password: '' });
-  const [loginError, setLoginError] = useState('');
   const [importForm, setImportForm] = useState({
     name: '',
     brand: '',
@@ -28,7 +25,15 @@ const Products = () => {
   });
   const [importLoading, setImportLoading] = useState(false);
 
-  const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+  const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8000';
+
+  // Check authentication on mount
+  useEffect(() => {
+    const token = sessionStorage.getItem('adminToken');
+    if (token) {
+      setIsAuthenticated(true);
+    }
+  }, []);
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -90,29 +95,8 @@ const Products = () => {
     if (isAuthenticated) {
       setShowImportModal(true);
     } else {
-      setShowLoginModal(true);
-    }
-  };
-
-  const handleLogin = async (e) => {
-    e.preventDefault();
-    setLoginError('');
-    setImportLoading(true);
-
-    try {
-
-      if (loginCredentials.username === 'Rose' && loginCredentials.password === 'rose0308') {
-        setIsAuthenticated(true);
-        setShowLoginModal(false);
-        setLoginCredentials({ username: '', password: '' });
-        setShowImportModal(true);
-      } else {
-        setLoginError('Invalid username or password');
-      }
-    } catch (err) {
-      setLoginError('Login failed. Please try again.');
-    } finally {
-      setImportLoading(false);
+      // Navigate to login page instead of showing modal
+      navigate('/login');
     }
   };
 
@@ -141,6 +125,7 @@ const Products = () => {
     setError('');
 
     try {
+      const token = sessionStorage.getItem('adminToken');
       const formData = new FormData();
       formData.append('name', importForm.name);
       formData.append('brand', importForm.brand);
@@ -157,6 +142,9 @@ const Products = () => {
 
       const response = await fetch(`${BACKEND_URL}/api/products/import`, {
         method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
         body: formData
       });
 
@@ -195,44 +183,6 @@ const Products = () => {
   };
 
   const brands = ['hp', 'canon', 'epson', 'brother', 'samsung', 'lexmark', 'xerox', 'dell', 'kyocera', 'ricoh', 'konica minolta', 'sharp'];
-
-  // Login Modal
-  const LoginModal = () => (
-    <div className="modal-overlay" onClick={() => setShowLoginModal(false)}>
-      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-        <div className="modal-header">
-          <h2>Admin Login</h2>
-          <button className="modal-close" onClick={() => setShowLoginModal(false)}>×</button>
-        </div>
-        <form onSubmit={handleLogin}>
-          <div className="form-group">
-            <label>Username</label>
-            <input
-              type="text"
-              value={loginCredentials.username}
-              onChange={(e) => setLoginCredentials({...loginCredentials, username: e.target.value})}
-              placeholder="Enter username"
-              required
-            />
-          </div>
-          <div className="form-group">
-            <label>Password</label>
-            <input
-              type="password"
-              value={loginCredentials.password}
-              onChange={(e) => setLoginCredentials({...loginCredentials, password: e.target.value})}
-              placeholder="Enter password"
-              required
-            />
-          </div>
-          {loginError && <div className="error-message">{loginError}</div>}
-          <button type="submit" className="submit-btn" disabled={importLoading}>
-            {importLoading ? 'Logging in...' : 'Login'}
-          </button>
-        </form>
-      </div>
-    </div>
-  );
 
   // Import Modal
   const ImportModal = () => (
@@ -296,14 +246,13 @@ const Products = () => {
               />
             </div>
             <div className="form-group">
-              <label>Original Price (R) *</label>
+              <label>Original Price (R)</label>
               <input
                 type="number"
                 name="originalPrice"
                 value={importForm.originalPrice}
                 onChange={handleImportFormChange}
                 placeholder="3200"
-                required
               />
             </div>
             <div className="form-group">
@@ -392,7 +341,7 @@ const Products = () => {
             ← Back to Home
           </button>
           <button className="import-btn" onClick={handleImportClick}>
-            📥 Import Product
+            Import Product
           </button>
         </div>
         <h1>Our Products</h1>
@@ -464,15 +413,19 @@ const Products = () => {
                     Compatible: {product.compatiblePrinters}
                   </p>
                 )}
-                <button className="add-to-cart-btn">Add to Cart</button>
+                <button 
+                  className="add-to-cart-btn" 
+                  onClick={() => navigate(`/product/${product._id || product.id}`)}
+                >
+                  View Product
+                </button>
               </div>
             </div>
           ))}
         </div>
       )}
 
-      {/* Modals */}
-      {showLoginModal && <LoginModal />}
+      {/* Import Modal */}
       {showImportModal && <ImportModal />}
 
       <style>{`

@@ -106,7 +106,7 @@ const Home = () => {
       <nav className="navbar">
         <div className="nav-container">
           <div className="logo" >
-            <img src="/logoimg.png" alt="Covenant Solution Print" style={{ height: '80px', width: 'auto' }} />
+            <img src="/updatelogo.png" alt="Covenant Solution Print"  />
           </div>
           <button className="hamburger" onClick={toggleSidebar}>
             <span></span>
@@ -423,8 +423,8 @@ const Home = () => {
 }
 
 .logo img {
-  height: 120px;
-  width: auto;
+  height: 100px;
+  width: 100%;
   background: #1b2937;
   display: block;
 }
