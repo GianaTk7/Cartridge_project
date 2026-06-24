@@ -4,28 +4,28 @@ import { useLocation, useNavigate } from 'react-router-dom';
 const Products = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedBrand, setSelectedBrand] = useState('');
   const [error, setError] = useState('');
-  
   const [showImportModal, setShowImportModal] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [importLoading, setImportLoading] = useState(false);
+  const [connectionStatus, setConnectionStatus] = useState('checking');
   const [importForm, setImportForm] = useState({
     name: '',
     brand: '',
     description: '',
     price: '',
     originalPrice: '',
-    discount: '',
-    compatiblePrinters: '',
     stock: '',
     category: '',
     image: null
   });
-  const [importLoading, setImportLoading] = useState(false);
 
   const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8000';
+  const brands = ['hp', 'canon', 'epson', 'brother', 'samsung', 'lexmark', 'xerox', 'dell', 'kyocera', 'ricoh', 'konica minolta', 'sharp'];
 
   // Check authentication on mount
   useEffect(() => {
@@ -35,73 +35,114 @@ const Products = () => {
     }
   }, []);
 
-useEffect(() => {
-  const params = new URLSearchParams(location.search);
-  const brand = params.get('brand');
+  // Check backend connection on mount
+  useEffect(() => {
+    const checkConnection = async () => {
+      try {
+        const response = await fetch(`${BACKEND_URL}/`);
+        if (response.ok) {
+          setConnectionStatus('connected');
+          console.log('✅ Connected to backend at:', BACKEND_URL);
+        } else {
+          setConnectionStatus('error');
+          console.error('❌ Backend returned error:', response.status);
+        }
+      } catch (err) {
+        setConnectionStatus('error');
+        console.error('❌ Cannot connect to backend at:', BACKEND_URL);
+        console.error('Error details:', err);
+        setError(`Cannot connect to backend at ${BACKEND_URL}. Please ensure the server is running.`);
+      }
+    };
+    
+    checkConnection();
+  }, [BACKEND_URL]);
 
-  if (brand) {
-    setSelectedBrand(brand);
-    fetchProducts(brand);
-  } else {
-    fetchAllProducts();
-  }
-}, [location.search, fetchProducts, fetchAllProducts]);
+  // Fetch products by brand - DEFINED BEFORE useEffect THAT USES IT
+  const fetchProducts = useCallback(async (brand) => {
+    setLoading(true);
+    setError('');
+    
+    try {
+      console.log(`🔍 Fetching products for brand: ${brand}`);
+      const response = await fetch(`${BACKEND_URL}/api/products?brand=${brand}`);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      console.log('📦 Products data:', data);
 
- const fetchProducts = useCallback(async (brand) => {
-  setLoading(true);
-  try {
-    const response = await fetch(`${BACKEND_URL}/api/products?brand=${brand}`);
-    const data = await response.json();
-
-    if (data.success) {
-      setProducts(data.products);
-    } else {
-      setError(data.message);
+      if (data.success) {
+        setProducts(data.products || []);
+      } else {
+        setError(data.message || 'Failed to fetch products');
+      }
+    } catch (err) {
+      console.error('❌ Fetch error:', err);
+      setError(`Failed to fetch products: ${err.message}`);
+    } finally {
+      setLoading(false);
     }
-  } catch (err) {
-    setError('Failed to fetch products');
-    console.error(err);
-  } finally {
-    setLoading(false);
-  }
-}, [BACKEND_URL]);
+  }, [BACKEND_URL]);
 
- const fetchAllProducts = useCallback(async () => {
-  setLoading(true);
-  setError('');
+  // Fetch all products - DEFINED BEFORE useEffect THAT USES IT
+  const fetchAllProducts = useCallback(async () => {
+    setLoading(true);
+    setError('');
 
-  try {
-    const response = await fetch(`${BACKEND_URL}/api/products`);
+    try {
+      console.log('🔍 Fetching all products');
+      const response = await fetch(`${BACKEND_URL}/api/products`);
 
-    if (!response.ok) {
-      throw new Error(`Server error: ${response.status}`);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      console.log('📦 All products data:', data);
+
+      if (data.success) {
+        setProducts(data.products || []);
+      } else {
+        setError(data.message || 'Failed to fetch products');
+      }
+    } catch (err) {
+      console.error('❌ Fetch error:', err);
+      setError(`Cannot connect to backend at ${BACKEND_URL}. Please ensure the server is running.`);
+    } finally {
+      setLoading(false);
     }
+  }, [BACKEND_URL]);
 
-    const data = await response.json();
+  // Load products based on URL params - NOW AFTER function definitions
+  useEffect(() => {
+    if (connectionStatus === 'connected') {
+      const params = new URLSearchParams(location.search);
+      const brand = params.get('brand');
 
-    if (data.success) {
-      setProducts(data.products);
-    } else {
-      setError(data.message || 'Failed to fetch products');
+      if (brand) {
+        setSelectedBrand(brand);
+        fetchProducts(brand);
+      } else {
+        setSelectedBrand('');
+        fetchAllProducts();
+      }
     }
-  } catch (err) {
-    console.error('Fetch error:', err);
-    setError('Cannot connect to backend.');
-  } finally {
-    setLoading(false);
-  }
-}, [BACKEND_URL]);
+  }, [location.search, fetchProducts, fetchAllProducts, connectionStatus]);
 
+  // Handle brand filter
   const handleBrandFilter = (brand) => {
     setSelectedBrand(brand);
     navigate(`/products?brand=${brand}`);
   };
 
+  // Handle import button click
   const handleImportClick = () => {
     if (isAuthenticated) {
       setShowImportModal(true);
     } else {
-      // Navigate to login page instead of showing modal
       navigate('/login');
     }
   };
@@ -132,20 +173,24 @@ useEffect(() => {
 
     try {
       const token = sessionStorage.getItem('adminToken');
+      if (!token) {
+        setError('Please login first');
+        setImportLoading(false);
+        return;
+      }
+
       const formData = new FormData();
-      formData.append('name', importForm.name);
-      formData.append('brand', importForm.brand);
-      formData.append('description', importForm.description);
-      formData.append('price', importForm.price);
-      formData.append('originalPrice', importForm.originalPrice);
-      formData.append('discount', importForm.discount);
-      formData.append('compatiblePrinters', importForm.compatiblePrinters);
-      formData.append('stock', importForm.stock);
-      formData.append('category', importForm.category);
+      Object.keys(importForm).forEach(key => {
+        if (key !== 'image' && importForm[key]) {
+          formData.append(key, importForm[key]);
+        }
+      });
+      
       if (importForm.image) {
         formData.append('image', importForm.image);
       }
 
+      console.log('📤 Importing product...');
       const response = await fetch(`${BACKEND_URL}/api/products/import`, {
         method: 'POST',
         headers: {
@@ -155,6 +200,7 @@ useEffect(() => {
       });
 
       const data = await response.json();
+      console.log('📥 Import response:', data);
       
       if (data.success) {
         setShowImportModal(false);
@@ -164,33 +210,30 @@ useEffect(() => {
           description: '',
           price: '',
           originalPrice: '',
-          discount: '',
-          compatiblePrinters: '',
           stock: '',
           category: '',
           image: null
         });
-        // Refresh products
+        
         if (selectedBrand) {
           fetchProducts(selectedBrand);
         } else {
           fetchAllProducts();
         }
+        
         alert('Product imported successfully!');
       } else {
         setError(data.message || 'Failed to import product');
       }
     } catch (err) {
-      console.error('Import error:', err);
-      setError('Failed to import product. Please try again.');
+      console.error('❌ Import error:', err);
+      setError(`Failed to import product: ${err.message}`);
     } finally {
       setImportLoading(false);
     }
   };
 
-  const brands = ['hp', 'canon', 'epson', 'brother', 'samsung', 'lexmark', 'xerox', 'dell', 'kyocera', 'ricoh', 'konica minolta', 'sharp'];
-
-  // Import Modal
+  // Import Modal Component
   const ImportModal = () => (
     <div className="modal-overlay" onClick={() => setShowImportModal(false)}>
       <div className="modal-content import-modal" onClick={(e) => e.stopPropagation()}>
@@ -198,6 +241,7 @@ useEffect(() => {
           <h2>Import New Product</h2>
           <button className="modal-close" onClick={() => setShowImportModal(false)}>×</button>
         </div>
+        
         <form onSubmit={handleImportSubmit}>
           <div className="form-row">
             <div className="form-group">
@@ -249,6 +293,8 @@ useEffect(() => {
                 onChange={handleImportFormChange}
                 placeholder="1400"
                 required
+                min="0"
+                step="0.01"
               />
             </div>
             <div className="form-group">
@@ -259,16 +305,8 @@ useEffect(() => {
                 value={importForm.originalPrice}
                 onChange={handleImportFormChange}
                 placeholder="3200"
-              />
-            </div>
-            <div className="form-group">
-              <label>Discount (%)</label>
-              <input
-                type="number"
-                name="discount"
-                value={importForm.discount}
-                onChange={handleImportFormChange}
-                placeholder="56"
+                min="0"
+                step="0.01"
               />
             </div>
           </div>
@@ -283,6 +321,7 @@ useEffect(() => {
                 onChange={handleImportFormChange}
                 placeholder="25"
                 required
+                min="0"
               />
             </div>
             <div className="form-group">
@@ -300,17 +339,6 @@ useEffect(() => {
                 <option value="Accessory">Accessory</option>
               </select>
             </div>
-          </div>
-
-          <div className="form-group">
-            <label>Compatible Printers</label>
-            <input
-              type="text"
-              name="compatiblePrinters"
-              value={importForm.compatiblePrinters}
-              onChange={handleImportFormChange}
-              placeholder="Canon Pixma TS3120, TS5120, TS6120"
-            />
           </div>
 
           <div className="form-group">
@@ -337,6 +365,27 @@ useEffect(() => {
       </div>
     </div>
   );
+
+  // Show connection error if backend not reachable
+  if (connectionStatus === 'error') {
+    return (
+      <div className="products-page">
+        <div className="error-container">
+          <h2>⚠️ Cannot Connect to Backend</h2>
+          <p>Unable to reach the server at: <strong>{BACKEND_URL}</strong></p>
+          <p>Please make sure:</p>
+          <ul>
+            <li>The FastAPI server is running (python main.py)</li>
+            <li>The server is running on port 8000</li>
+            <li>No firewall is blocking the connection</li>
+          </ul>
+          <button onClick={() => window.location.reload()} className="retry-btn">
+            Retry Connection
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="products-page">
@@ -382,6 +431,9 @@ useEffect(() => {
       ) : error ? (
         <div className="error-message">
           <p>{error}</p>
+          <button onClick={() => window.location.reload()} className="retry-btn">
+            Retry
+          </button>
         </div>
       ) : products.length === 0 ? (
         <div className="no-products">
@@ -390,18 +442,21 @@ useEffect(() => {
       ) : (
         <div className="products-grid">
           {products.map((product) => (
-            <div key={product._id} className="product-card">
-              {product.discount && product.discount > 0 && (
-                <div className="product-discount">-{product.discount}%</div>
-              )}
+            <div key={product._id || product.id} className="product-card">
               <div className="product-image">
                 <img
                   src={
                     product.image
-                      ? `${BACKEND_URL}${product.image}`
+                      ? product.image.startsWith('http') 
+                        ? product.image 
+                        : `${BACKEND_URL}${product.image}`
                       : 'https://via.placeholder.com/500'
                   }
                   alt={product.name}
+                  onError={(e) => {
+                    e.target.onerror = null;
+                    e.target.src = 'https://via.placeholder.com/500';
+                  }}
                 />
               </div>
               <div className="product-info">
@@ -414,11 +469,6 @@ useEffect(() => {
                   )}
                   <span className="current-price">R{product.price}</span>
                 </div>
-                {product.compatiblePrinters && (
-                  <p className="compatible-printers">
-                    Compatible: {product.compatiblePrinters}
-                  </p>
-                )}
                 <button 
                   className="add-to-cart-btn" 
                   onClick={() => navigate(`/product/${product._id || product.id}`)}
@@ -439,6 +489,47 @@ useEffect(() => {
           min-height: 100vh;
           background: #f5f5f5;
           padding: 2rem;
+        }
+
+        .error-container {
+          max-width: 600px;
+          margin: 4rem auto;
+          padding: 2rem;
+          background: white;
+          border-radius: 12px;
+          box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+          text-align: center;
+        }
+
+        .error-container h2 {
+          color: #dc3545;
+          margin-bottom: 1rem;
+        }
+
+        .error-container ul {
+          text-align: left;
+          margin: 1rem auto;
+          max-width: 400px;
+        }
+
+        .error-container li {
+          margin: 0.5rem 0;
+        }
+
+        .retry-btn {
+          background: #007bff;
+          color: white;
+          border: none;
+          padding: 0.75rem 2rem;
+          border-radius: 5px;
+          font-size: 1rem;
+          cursor: pointer;
+          margin-top: 1rem;
+          transition: background 0.3s;
+        }
+
+        .retry-btn:hover {
+          background: #0056b3;
         }
 
         .products-header {
@@ -553,19 +644,6 @@ useEffect(() => {
           box-shadow: 0 8px 25px rgba(0,0,0,0.15);
         }
 
-        .product-discount {
-          position: absolute;
-          top: 10px;
-          right: 10px;
-          background: #ff4444;
-          color: white;
-          padding: 5px 10px;
-          border-radius: 5px;
-          font-size: 0.8rem;
-          font-weight: bold;
-          z-index: 1;
-        }
-
         .product-image {
           width: 100%;
           height: 250px;
@@ -626,13 +704,6 @@ useEffect(() => {
           font-weight: bold;
         }
 
-        .compatible-printers {
-          font-size: 0.8rem;
-          color: #666;
-          margin-bottom: 1rem;
-          font-style: italic;
-        }
-
         .add-to-cart-btn {
           width: 100%;
           padding: 0.8rem;
@@ -649,7 +720,6 @@ useEffect(() => {
           background: #0056b3;
         }
 
-        /* Modal Styles */
         .modal-overlay {
           position: fixed;
           top: 0;
@@ -779,6 +849,13 @@ useEffect(() => {
           border-radius: 5px;
         }
 
+        .no-products {
+          text-align: center;
+          padding: 3rem;
+          color: #666;
+          font-size: 1.2rem;
+        }
+
         .loading-spinner {
           display: flex;
           flex-direction: column;
@@ -811,10 +888,7 @@ useEffect(() => {
             gap: 0.5rem;
           }
 
-          .back-btn {
-            width: 100%;
-          }
-
+          .back-btn,
           .import-btn {
             width: 100%;
           }
