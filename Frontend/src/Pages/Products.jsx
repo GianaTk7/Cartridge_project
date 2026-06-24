@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 const Products = () => {
@@ -35,56 +35,62 @@ const Products = () => {
     }
   }, []);
 
-  useEffect(() => {
-    const params = new URLSearchParams(location.search);
-    const brand = params.get('brand');
-    if (brand) {
-      setSelectedBrand(brand);
-      fetchProducts(brand);
+useEffect(() => {
+  const params = new URLSearchParams(location.search);
+  const brand = params.get('brand');
+
+  if (brand) {
+    setSelectedBrand(brand);
+    fetchProducts(brand);
+  } else {
+    fetchAllProducts();
+  }
+}, [location.search, fetchProducts, fetchAllProducts]);
+
+ const fetchProducts = useCallback(async (brand) => {
+  setLoading(true);
+  try {
+    const response = await fetch(`${BACKEND_URL}/api/products?brand=${brand}`);
+    const data = await response.json();
+
+    if (data.success) {
+      setProducts(data.products);
     } else {
-      fetchAllProducts();
+      setError(data.message);
     }
-  }, [location.search]);
+  } catch (err) {
+    setError('Failed to fetch products');
+    console.error(err);
+  } finally {
+    setLoading(false);
+  }
+}, [BACKEND_URL]);
 
-  const fetchProducts = async (brand) => {
-    setLoading(true);
-    try {
-      const response = await fetch(`${BACKEND_URL}/api/products?brand=${brand}`);
-      const data = await response.json();
-      if (data.success) {
-        setProducts(data.products);
-      } else {
-        setError(data.message);
-      }
-    } catch (err) {
-      setError('Failed to fetch products');
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  };
+ const fetchAllProducts = useCallback(async () => {
+  setLoading(true);
+  setError('');
 
-  const fetchAllProducts = async () => {
-    setLoading(true);
-    setError('');
-    try {
-      const response = await fetch(`${BACKEND_URL}/api/products`);
-      if (!response.ok) {
-        throw new Error(`Server error: ${response.status}`);
-      }
-      const data = await response.json();
-      if (data.success) {
-        setProducts(data.products);
-      } else {
-        setError(data.message || 'Failed to fetch products');
-      }
-    } catch (err) {
-      console.error('Fetch error:', err);
-      setError('Cannot connect to backend. Make sure server is running on port 8000');
-    } finally {
-      setLoading(false);
+  try {
+    const response = await fetch(`${BACKEND_URL}/api/products`);
+
+    if (!response.ok) {
+      throw new Error(`Server error: ${response.status}`);
     }
-  };
+
+    const data = await response.json();
+
+    if (data.success) {
+      setProducts(data.products);
+    } else {
+      setError(data.message || 'Failed to fetch products');
+    }
+  } catch (err) {
+    console.error('Fetch error:', err);
+    setError('Cannot connect to backend.');
+  } finally {
+    setLoading(false);
+  }
+}, [BACKEND_URL]);
 
   const handleBrandFilter = (brand) => {
     setSelectedBrand(brand);

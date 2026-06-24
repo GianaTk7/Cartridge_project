@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 
 const Viewproduct = () => {
@@ -10,27 +10,30 @@ const Viewproduct = () => {
 
   const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8000';
 
-  useEffect(() => {
-    fetchProduct();
-  }, [id]);
 
-  const fetchProduct = async () => {
-    setLoading(true);
-    try {
-      const response = await fetch(`${BACKEND_URL}/api/products/${id}`);
-      const data = await response.json();
-      if (data.success) {
-        setProduct(data.product);
-      } else {
-        setError(data.message || 'Product not found');
-      }
-    } catch (err) {
-      console.error('Error fetching product:', err);
-      setError('Failed to fetch product details');
-    } finally {
-      setLoading(false);
+const fetchProduct = useCallback(async () => {
+  setLoading(true);
+
+  try {
+    const response = await fetch(`${BACKEND_URL}/api/products/${id}`);
+    const data = await response.json();
+
+    if (data.success) {
+      setProduct(data.product);
+    } else {
+      setError(data.message || 'Product not found');
     }
-  };
+  } catch (err) {
+    console.error('Error fetching product:', err);
+    setError('Failed to fetch product details');
+  } finally {
+    setLoading(false);
+  }
+}, [BACKEND_URL, id]);
+
+useEffect(() => {
+  fetchProduct();
+}, [fetchProduct]);
 
   if (loading) {
     return (
