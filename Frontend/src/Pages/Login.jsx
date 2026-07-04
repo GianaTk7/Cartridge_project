@@ -15,7 +15,6 @@ const Login = () => {
     setLoading(true);
 
     try {
-      // Create form data for the backend
       const formData = new FormData();
       formData.append('username', credentials.username);
       formData.append('password', credentials.password);
@@ -30,12 +29,15 @@ const Login = () => {
       if (data.success) {
         // Store authentication data
         sessionStorage.setItem('isAdmin', 'true');
-        sessionStorage.setItem('adminUsername', data.Login.username);
+        sessionStorage.setItem('adminUsername', data.Login?.username || credentials.username);
         sessionStorage.setItem('adminToken', data.token);
-        sessionStorage.setItem('adminRole', data.Login.role);
-        sessionStorage.setItem('adminId', data.Login.id);
+        sessionStorage.setItem('adminRole', data.Login?.role || 'admin');
+        sessionStorage.setItem('adminId', data.Login?.id || '');
+      
+        const redirectPath = sessionStorage.getItem('redirectAfterLogin') || '/products';
         
-        navigate('/admin');
+        sessionStorage.removeItem('redirectAfterLogin');
+        navigate(redirectPath);
       } else {
         setError(data.message || 'Invalid username or password');
       }
@@ -48,6 +50,9 @@ const Login = () => {
   };
 
   const handleGoHome = () => {
+    // Clear any pending redirects
+    sessionStorage.removeItem('redirectAfterLogin');
+    sessionStorage.removeItem('openImportModal');
     navigate('/');
   };
 
@@ -63,7 +68,6 @@ const Login = () => {
           <div className="form-group">
             <label htmlFor="username">Username or Email</label>
             <div className="input-wrapper">
-              <span className="input-icon">👤</span>
               <input
                 type="text"
                 id="username"
@@ -92,7 +96,6 @@ const Login = () => {
 
           {error && (
             <div className="error-message">
-              <span>❌</span>
               {error}
             </div>
           )}
@@ -160,12 +163,6 @@ const Login = () => {
         .login-header {
           text-align: center;
           margin-bottom: 2.5rem;
-        }
-
-        .login-icon {
-          font-size: 3rem;
-          margin-bottom: 0.5rem;
-          display: block;
         }
 
         .login-header h1 {
@@ -353,35 +350,6 @@ const Login = () => {
           transform: translateY(0);
         }
 
-        .login-footer {
-          text-align: center;
-          margin-top: 0.5rem;
-          padding-top: 1.5rem;
-          border-top: 1px solid #f0f0f0;
-        }
-
-        .login-footer p {
-          font-size: 0.85rem;
-          color: #888;
-          background: #f8f9fa;
-          padding: 0.5rem 1rem;
-          border-radius: 8px;
-          display: inline-block;
-          margin: 0 0 0.3rem 0;
-        }
-
-        .login-footer small {
-          display: block;
-          font-size: 0.75rem;
-          color: #999;
-          margin-top: 0.2rem;
-        }
-
-        .login-footer strong {
-          color: #333;
-        }
-
-        /* Responsive Design */
         @media (max-width: 480px) {
           .login-container {
             padding: 2rem 1.5rem;
@@ -394,10 +362,6 @@ const Login = () => {
 
           .login-header p {
             font-size: 0.85rem;
-          }
-
-          .login-icon {
-            font-size: 2.5rem;
           }
 
           .form-group input {
@@ -424,41 +388,8 @@ const Login = () => {
             font-size: 0.85rem;
             padding: 0.6rem 0.8rem;
           }
-
-          .login-footer p {
-            font-size: 0.75rem;
-            padding: 0.4rem 0.8rem;
-          }
         }
 
-        @media (max-width: 360px) {
-          .login-container {
-            padding: 1.5rem 1rem;
-          }
-
-          .login-header h1 {
-            font-size: 1.3rem;
-          }
-
-          .form-group input {
-            padding: 0.7rem 0.7rem 0.7rem 2.5rem;
-            font-size: 0.9rem;
-          }
-
-          .home-btn {
-            font-size: 0.85rem;
-            padding: 0.7rem;
-          }
-        }
-
-        /* High DPI Screens */
-        @media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
-          .login-container {
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
-          }
-        }
-
-        /* Dark mode support */
         @media (prefers-color-scheme: dark) {
           .login-page {
             background: linear-gradient(135deg, #4a3f7a 0%, #5a3d7a 100%);
@@ -496,10 +427,6 @@ const Login = () => {
             color: #888;
           }
 
-          .form-group input:hover {
-            border-color: #5a5a7a;
-          }
-
           .input-icon {
             color: #888;
           }
@@ -522,23 +449,6 @@ const Login = () => {
           .home-btn:hover {
             background: #3a3a5a;
             border-color: #667eea;
-          }
-
-          .login-footer {
-            border-top-color: #3a3a5a;
-          }
-
-          .login-footer p {
-            background: #2a2a4a;
-            color: #aaa;
-          }
-
-          .login-footer small {
-            color: #777;
-          }
-
-          .login-footer strong {
-            color: #e8e8e8;
           }
 
           .error-message {

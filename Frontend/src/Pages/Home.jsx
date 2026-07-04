@@ -173,7 +173,9 @@ const Home = () => {
           <p className="hero-text">
             Covenant Solution Print delivers high-quality, affordable printing services for businesses and individuals.
           </p>
-          <button className="cta-button">View Services</button>
+          <button className="cta-button" onClick={() => navigate('/products')}>
+            View Services
+          </button>
         </div>
       </section>
 

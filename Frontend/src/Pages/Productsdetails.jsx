@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 
-const Viewproduct = () => {
+const Productsdetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [product, setProduct] = useState(null);
@@ -366,4 +366,4 @@ useEffect(() => {
   );
 };
 
-export default Viewproduct;
+export default Productsdetails;
