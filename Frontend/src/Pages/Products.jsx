@@ -14,16 +14,6 @@ const Products = () => {
   const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:8000';
   const brands = ['hp', 'canon', 'epson', 'brother', 'samsung', 'lexmark', 'xerox', 'dell', 'kyocera', 'ricoh', 'konica minolta', 'sharp'];
 
-  // Check authentication for import button
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  
-  useEffect(() => {
-    const token = sessionStorage.getItem('adminToken');
-    if (token) {
-      setIsAuthenticated(true);
-    }
-  }, []);
-
   // Check backend connection on mount
   useEffect(() => {
     const checkConnection = async () => {
